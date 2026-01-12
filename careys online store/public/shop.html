@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" x-data="shopEngine()">
+<head>
+    <meta charset="UTF-8">
+    <title>Carey's | The Digital Aisle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #05070A; color: white; }
+        .product-gradient { background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%); }
+    </style>
+</head>
+<body class="pb-20">
+
+    <nav class="p-8 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#05070A]/80 backdrop-blur-md z-50">
+        <a href="index.html" class="text-xl font-bold tracking-tighter uppercase italic text-blue-500">Carey's</a>
+        <div class="flex gap-4">
+            <button class="bg-white/5 p-4 rounded-full border border-white/10 relative">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span class="absolute -top-1 -right-1 bg-blue-600 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold" x-text="cartCount"></span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <h2 class="text-5xl md:text-7xl font-bold tracking-tighter">Current <br><span class="text-gray-600 italic">Inventory.</span></h2>
+            <div class="flex gap-6 p-2 bg-white/5 rounded-full border border-white/10 px-6">
+                <template x-for="cat in ['all', 'appliances', 'electronics', 'furniture']">
+                    <button @click="category = cat" 
+                            :class="category === cat ? 'text-blue-400' : 'text-gray-500'" 
+                            class="font-bold uppercase tracking-widest text-[10px] transition" x-text="cat"></button>
+                </template>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <template x-for="p in products">
+                <div x-show="category === 'all' || category === p.cat" class="group cursor-pointer">
+                    <div class="product-gradient rounded-[2.5rem] p-4 border border-white/5 mb-6 overflow-hidden">
+                        <img :src="p.img" class="w-full h-80 object-cover rounded-[2rem] group-hover:scale-105 transition duration-700">
+                    </div>
+                    <div class="flex justify-between items-start px-2">
+                        <div>
+                            <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2" x-text="p.brand"></p>
+                            <h4 class="text-xl font-bold mb-1" x-text="p.name"></h4>
+                            <p class="text-gray-500 text-sm" x-text="p.desc"></p>
+                        </div>
+                        <span class="text-2xl font-bold" x-text="'$' + p.price"></span>
+                    </div>
+                    <button @click="addToCart(p)" class="w-full mt-6 py-4 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition shadow-xl">Quick Add</button>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

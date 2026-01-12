@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" x-data="careyAdmin()">
+<head>
+    <meta charset="UTF-8">
+    <title>Merchant Portal | Carey's</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/app.js"></script>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden antialiased text-slate-900">
+
+    <aside class="w-72 bg-white border-r border-slate-200 p-8 flex flex-col shadow-sm">
+        <div class="mb-12">
+            <h2 class="text-2xl font-black italic tracking-tighter uppercase text-blue-600">Carey's</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Terminal</p>
+        </div>
+        <nav class="space-y-1 flex-1">
+            <template x-for="item in ['Dashboard', 'Active Orders', 'Inventory']">
+                <button @click="view = item" 
+                        :class="view === item ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'" 
+                        class="w-full text-left px-6 py-4 rounded-2xl font-bold text-sm transition-all" x-text="item"></button>
+            </template>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-12">
+        <header class="mb-12">
+            <h1 class="text-5xl font-black tracking-tight" x-text="view"></h1>
+        </header>
+
+        <div x-show="view === 'Inventory'" class="space-y-6">
+            <div class="flex justify-between items-center gap-4">
+                <input type="text" x-model="searchQuery" placeholder="Filter products..." class="flex-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                <button class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold">+ Add Item</button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400">Product</th>
+                            <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400">Category</th>
+                            <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400">Price</th>
+                            <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="p in products.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))">
+                            <tr class="border-b border-slate-50 hover:bg-slate-50/50">
+                                <td class="px-8 py-4 font-bold" x-text="p.name"></td>
+                                <td class="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest" x-text="p.cat"></td>
+                                <td class="px-8 py-4 font-black text-blue-600" x-text="'$' + p.price"></td>
+                                <td class="px-8 py-4 text-right">
+                                    <button class="text-slate-300 hover:text-blue-600 transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div x-show="view === 'Active Orders'" class="space-y-4">
+            <template x-for="order in orders">
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-200 flex justify-between items-center">
+                    <div>
+                        <h4 class="text-xl font-bold" x-text="order.customer"></h4>
+                        <p class="text-slate-500 text-sm font-medium" x-text="order.item"></p>
+                    </div>
+                    <button @click="pushToTruck(order.id)" class="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition">Dispatch</button>
+                </div>
+            </template>
+        </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
