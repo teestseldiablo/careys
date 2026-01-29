@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Carey's Management System</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --card: #0f172a; --accent: #10b981; --border: #1e293b; --text: #f8fafc; --text-dim: #94a3b8; --danger: #ef4444; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; }
+        .sidebar { width: 260px; height: 100vh; background: #010409; position: fixed; border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; }
+        .brand { font-family: 'Syncopate', sans-serif; color: var(--accent); font-size: 18px; letter-spacing: 2px; margin-bottom: 40px; }
+        .nav-btn { background: transparent; border: 1px solid transparent; color: var(--text-dim); padding: 12px; text-align: left; width: 100%; border-radius: 8px; cursor: pointer; font-size: 13px; margin-bottom: 5px; transition: 0.2s; }
+        .nav-btn.active { background: var(--card); color: var(--accent); border-color: var(--border); }
+        .content { margin-left: 260px; padding: 50px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        input { background: var(--bg); border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; width: 100%; margin: 10px 0; }
+        .btn-action { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        .btn-primary { background: var(--accent); color: #000; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--text-dim); padding: 12px; border-bottom: 1px solid var(--border); font-size: 11px; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('properties');
+            const [data, setData] = useState([]);
+
+            const fetchData = async () => {
+                try {
+                    const res = await fetch(`/api/${view}`);
+                    const json = await res.json();
+                    setData(Array.isArray(json) ? json : []);
+                } catch (err) { setData([]); }
+            };
+
+            useEffect(() => { if(user) fetchData(); }, [view, user]);
+
+            if (!user) return (
+                <div style={{display:'flex', height:'100vh', alignItems:'center', justifyContent:'center'}}>
+                    <div className="card" style={{width: 320, textAlign:'center'}}>
+                        <div className="brand">CAREY'S</div>
+                        <input type="password" placeholder="ENTER PIN" onKeyDown={async (e) => {
+                            if(e.key === 'Enter') {
+                                const res = await fetch('/login', {
+                                    method: 'POST',
+                                    headers: {'Content-Type':'application/json'},
+                                    body: JSON.stringify({pin: e.target.value})
+                                });
+                                const r = await res.json();
+                                if(r.success) setUser(r.user); else alert("Denied");
+                            }
+                        }} />
+                    </div>
+                </div>
+            );
+
+            return (
+                <div>
+                    <div className="sidebar">
+                        <div className="brand">CAREY'S</div>
+                        <button className={"nav-btn "+(view==='properties'?'active':'')} onClick={()=>setView('properties')}>PORTFOLIO</button>
+                        <button className={"nav-btn "+(view==='maintenance'?'active':'')} onClick={()=>setView('maintenance')}>MAINTENANCE</button>
+                        <button className={"nav-btn "+(view==='audit-logs'?'active':'')} onClick={()=>setView('audit-logs')}>AUDIT LOGS</button>
+                        <button className="nav-btn" style={{marginTop:'auto', color:'var(--danger)'}} onClick={()=>setUser(null)}>EXIT</button>
+                    </div>
+                    <div className="content">
+                        <h1>{view.toUpperCase()}</h1>
+                        
+                        {view === 'maintenance' && (
+                            <div className="card">
+                                <button className="btn-action btn-primary" style={{marginBottom:20}} onClick={() => {
+                                    const pId = prompt("Enter Property ID (e.g. 1):");
+                                    const issue = prompt("Issue Description:");
+                                    if(pId && issue) fetch('/api/maintenance', {
+                                        method:'POST',
+                                        headers:{'Content-Type':'application/json'},
+                                        body: JSON.stringify({property_id: pId, issue_description: issue, priority: 'Normal', user_id: user.id})
+                                    }).then(fetchData);
+                                }}>+ New Request</button>
+                                <table>
+                                    <thead><tr><th>PROPERTY</th><th>ISSUE</th><th>STATUS</th></tr></thead>
+                                    <tbody>
+                                        {data.map(m => (
+                                            <tr key={m.id}>
+                                                <td>{m.property_name || 'ID: '+m.property_id}</td>
+                                                <td>{m.issue_description}</td>
+                                                <td>{m.status}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {view === 'properties' && (
+                            <div className="card">
+                                <table>
+                                    <thead><tr><th>ID</th><th>NAME</th><th>ADDRESS</th></tr></thead>
+                                    <tbody>
+                                        {data.map(p => (
+                                            <tr key={p.id}><td>{p.id}</td><td>{p.property_name}</td><td>{p.address_street}</td></tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {view === 'audit-logs' && (
+                            <div className="card">
+                                <table>
+                                    <thead><tr><th>USER</th><th>ACTION</th><th>DETAILS</th></tr></thead>
+                                    <tbody>
+                                        {data.map(a => (
+                                            <tr key={a.id}><td>{a.user_name}</td><td>{a.action}</td><td>{a.details}</td></tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
